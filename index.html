@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>سامانه هوشمند رزرواسیون یک‌ماهه غذا</title>
+  
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --accent: #06b6d4;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-soft: #fee2e2;
+      --success: #10b981;
+      --success-soft: #d1fae5;
+      --warning: #f59e0b;
+      --warning-soft: #fef3c7;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+      --shadow-glow: 0 10px 25px -5px rgba(79, 70, 229, 0.35);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+      font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 540px;
+      min-height: 100vh;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.07);
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #312e81 0%, #4f46e5 60%, #06b6d4 100%);
+      color: #fff;
+      padding: 26px 20px;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: var(--shadow-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-header h1 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-header p {
+      margin: 6px 0 0;
+      font-size: 0.82rem;
+      color: #e0e7ff;
+      opacity: 0.9;
+    }
+
+    .content-area {
+      padding: 18px 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(10px);
+    }
+
+    .card h2, .card h3 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-sub {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"], input[type="number"], select, input[type="file"], input[type="date"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      background-color: #f8fafc;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 14px;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, input[type="date"]:focus {
+      border-color: var(--primary);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px 18px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    button:active { transform: scale(0.97); }
+
+    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%); color: white; }
+    .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+    .btn-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      width: auto;
+    }
+    .btn-secondary:hover { background: #cbd5e1; }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      color: #991b1b;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      border-radius: 20px;
+      width: auto;
+      border: 1px solid #fca5a5;
+    }
+    .btn-cancel-meal {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #fca5a5;
+      width: auto;
+      cursor: pointer;
+    }
+    .btn-cancel-meal:hover {
+      background: #f87171;
+      color: #fff;
+    }
+
+    .btn-unban {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      border-radius: 8px;
+      width: auto;
+    }
+
+    .hidden { display: none !important; }
+
+    .user-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary-light), #f0fdfa);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      border: 1px solid #c7d2fe;
+    }
+
+    .penalty-pill {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 2px 10px;
+      border-radius: 30px;
+      font-weight: 900;
+      font-size: 0.85rem;
+      border: 1px solid #fca5a5;
+      display: inline-block;
+    }
+
+    .penalty-danger {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .price-pill {
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 3px 10px;
+      border-radius: 30px;
+      font-weight: 900;
+      font-size: 0.85rem;
+      border: 1px solid #a7f3d0;
+      display: inline-block;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .status-open { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .status-closed { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    .table-container {
+      max-height: 420px;
+      overflow: auto;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      margin: 10px 0 14px;
+    }
+
+    .mobile-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      background: #fff;
+    }
+
+    .mobile-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 800;
+      padding: 10px 6px;
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .mobile-table td {
+      padding: 10px 6px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .checkbox-wrap input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .status-card {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 1.5px solid #6ee7b7;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .day-config-row {
+      background: #ffffff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+
+    .meal-checkboxes {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .date-tag {
+      font-size: 0.75rem;
+      color: #4f46e5;
+      font-weight: 700;
+      background: #e0e7ff;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .price-box-summary {
+      background: #f0fdf4;
+      border: 1.5px dashed #86efac;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-loader {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(6px);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loader-box {
+      background: #ffffff;
+      padding: 20px 28px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s infinite linear;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="loader" class="app-loader">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <span style="font-weight: 800; color: #334155; font-size: 0.9rem;">لطفاً شکیبا باشید...</span>
+  </div>
+</div>
+
+<div class="app-wrapper">
+  
+  <header class="app-header">
+    <h1>🍽️ سامانه هوشمند رزرو ماهانه غذا</h1>
+    <p>رزرواسیون یک‌ماهه، محاسبه مبالغ و مدیریت هوشمند انصراف</p>
+  </header>
+
+  <main class="content-area">
+
+    <!-- بخش ورود -->
+    <div id="login-section" class="card">
+      <h2>🔐 ورود به سامانه</h2>
+      <label for="license-input">کد لایسنس کاربری / مدیریتی:</label>
+      <input type="text" id="license-input" placeholder="مثال: USR-1049-VK" autocomplete="off">
+      <button onclick="login()" class="btn-primary">
+        <span>ورود به سامانه</span>
+      </button>
+    </div>
+
+    <!-- داشبورد کاربر -->
+    <div id="user-section" class="card hidden">
+      <div class="user-badge">
+        <div>
+          <div>👤 کاربر: <strong id="user-name-display"></strong></div>
+          <div style="font-size: 0.82rem; margin-top: 3px;">
+            ⚠️ نمره منفی: <span id="user-penalty-display" class="penalty-pill">0</span>
+          </div>
+          <div style="font-size: 0.82rem; margin-top: 3px;">
+            💳 هزینه کل دوره: <span id="user-cost-display" class="price-pill">0 تومان</span>
+          </div>
+        </div>
+        <button onclick="logout()" class="btn-danger">خروج</button>
+      </div>
+
+      <!-- پیام مسدودی نمره منفی ۷ -->
+      <div id="banned-msg" class="status-card" style="background:#fee2e2; border-color:#fca5a5; display:none;">
+        <div style="font-size: 38px;">🚫</div>
+        <h3 style="color: #991b1b; justify-content: center;">حساب شما محدود شده است</h3>
+        <p style="font-size: 0.85rem; color: #7f1d1d;">سرورم، نمره منفی شما به ۷ یا بالاتر رسیده است. جهت فعال‌سازی به مدیریت سامانه مراجعه فرمایید.</p>
+      </div>
+
+      <div id="user-active-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0;">📅 <span id="form-title-display"></span></h3>
+          <span id="form-status-badge" class="status-pill"></span>
+        </div>
+
+        <!-- پیام بسته بودن فرم ثبت نام -->
+        <div id="form-closed-msg" class="status-card" style="background:#fef3c7; border-color:#fcd34d; display:none;">
+          <div style="font-size: 34px;">🔒</div>
+          <h3 style="color: #92400e; justify-content: center;">مهلت ثبت‌نام به پایان رسیده است</h3>
+          <p style="font-size: 0.83rem; color: #78350f;">طبق صلاحدید مدیریت، فرم رزرواسیون غذا برای این دوره بسته شده است و امکان ثبت‌نام جدید وجود ندارد.</p>
+        </div>
+
+        <!-- فرم ثبت نام اولیه ماهانه -->
+        <div id="reservation-table-container" class="hidden">
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
+            📌 وعده‌های مورد نظر خود را انتخاب فرمایید، یا از گزینه انتخاب سریع همه استفاده کنید:
+          </p>
+
+          <!-- دکمه‌های انتخاب سریع همه / لغو همه -->
+          <div class="action-bar">
+            <button type="button" class="btn-secondary" onclick="toggleSelectAllMeals(true)" style="background: #eef2ff; color: #4338ca; border-color: #c7d2fe;">
+              ✨ انتخاب همه وعده‌های این ماه
+            </button>
+            <button type="button" class="btn-secondary" onclick="toggleSelectAllMeals(false)">
+              ❌ لغو انتخاب همه
+            </button>
+          </div>
+
+          <!-- باکس محاسبه زنده مبلغ انتخابی -->
+          <div class="price-box-summary">
+            <div>
+              <span style="font-size: 0.82rem; color: #166534; font-weight: bold;">تعداد انتخاب: <span id="selected-count">0</span> وعده</span>
+            </div>
+            <div>
+              <span style="font-size: 0.82rem; color: #166534; font-weight: bold;">مبلغ قابل پرداخت: </span>
+              <strong id="live-total-cost" style="color: #15803d; font-size: 1rem;">0</strong> <small>تومان</small>
+            </div>
+          </div>
+
+          <!-- فیلتر و جستجوی روز با تاریخ شمسی -->
+          <div class="card-sub" style="margin-top: 10px;">
+            <label for="reservation-date-search">🔍 جست‌وجوی روز با تاریخ شمسی:</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="reservation-date-search" placeholder="مثال: 1403/02/15 یا 15" style="margin-bottom: 0;">
+              <button type="button" class="btn-secondary" onclick="searchReservationDate()" style="white-space: nowrap;">جستجو</button>
+              <button type="button" class="btn-secondary" onclick="clearReservationDateSearch()" style="white-space: nowrap;">نمایش همه</button>
+            </div>
+            <p id="reservation-date-search-result" style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;"></p>
+          </div>
+
+          <div class="table-container">
+            <table class="mobile-table" id="meals-grid"></table>
+          </div>
+
+          <button onclick="submitReservation()" class="btn-success">
+            <span>تأیید و ثبت نهایی رزرو ماهانه</span>
+          </button>
+        </div>
+
+        <!-- مدیریت وعده‌های رزرو شده و قانون انصراف -->
+        <div id="already-reserved-container" class="hidden">
+          <div class="status-card">
+            <div style="font-size: 32px;">🎉</div>
+            <h3 style="color: #065f46; justify-content: center; margin-bottom: 4px;">رزرو ماهانه شما فعال است</h3>
+            <p style="font-size: 0.82rem; color: #047857;">لیست وعده‌های انتخابی شما در جدول زیر ثبت و منظور گردیده است.</p>
+          </div>
+
+          <div class="card-sub" style="background: #fff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h3 style="color: #4f46e5; font-size: 0.95rem; margin:0;">📋 لیست وعده‌ها و امکان انصراف</h3>
+              <span id="reserved-total-cost-badge" class="price-pill">مبلغ: ۰ تومان</span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+              ⚠️ <strong>قانون انصراف:</strong> تنها در صورتی مجاز به انصراف از یک وعده هستید که حداقل ۲ وعده از رزروهای خودتان قبل از آن باقی مانده باشد. با انصراف، هزینه آن کسر خواهد شد.
+            </p>
+            <!-- فیلتر تاریخ برای انصراف از وعده -->
+            <div style="margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+              <label for="reserved-date-search" style="margin-bottom: 6px;">🔍 جستجوی روز جهت انصراف سریع:</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="reserved-date-search" placeholder="مثال: 1403/02/15 یا 15" style="margin-bottom: 0;">
+                <button type="button" class="btn-secondary" onclick="searchReservedDate()" style="white-space: nowrap;">جستجو</button>
+                <button type="button" class="btn-secondary" onclick="clearReservedDateSearch()" style="white-space: nowrap;">نمایش همه</button>
+              </div>
+              <p id="reserved-date-search-result" style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;"></p>
+            </div>
+            <div class="table-container" style="max-height: 300px;">
+              <table class="mobile-table">
+                <thead>
+                  <tr>
+                    <th>ردیف</th>
+                    <th>روز و تاریخ ماه</th>
+                    <th>وعده</th>
+                    <th>مبلغ (تومان)</th>
+                    <th>عملیات</th>
+                  </tr>
+                </thead>
+                <tbody id="user-meals-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- پنل مدیریت -->
+    <div id="admin-section" class="hidden">
+      <div class="card">
+        <div class="user-badge">
+          <div>
+            <div>👑 <strong>پنل مدیریت سامانه</strong></div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);"><span id="admin-name-display"></span></div>
+          </div>
+          <button onclick="logout()" class="btn-danger">خروج</button>
+        </div>
+
+        <!-- کلید بستن / باز کردن فرم ثبت‌نام -->
+        <div class="card-sub" style="background: #f8fafc; border-color: #cbd5e1;">
+          <h3 style="color: #334155; margin-bottom: 6px;">🔒 وضعیت دسترسی و ثبت‌نام فرم</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+            وضعیت فعلی فرم: <strong id="admin-form-status-text" style="color: var(--primary);">در حال بررسی...</strong>
+          </p>
+          <button id="toggle-form-status-btn" onclick="toggleFormStatus()" class="btn-orange">
+            تغییر وضعیت فرم
+          </button>
+        </div>
+
+        <!-- گزارش مالی و دریافت مبالغ کاربران -->
+        <div class="card-sub" style="border-color: #a7f3d0; background: #f0fdf4;">
+          <h3 style="color: #065f46;">💰 گزارش مبالغ نهایی کاربران</h3>
+          <p style="font-size: 0.8rem; color: #166534; margin-bottom: 10px;">
+            مجموع کل درآمدهای دوره فعلی: <strong id="admin-total-income">0 تومان</strong>
+          </p>
+          <div class="table-container" style="max-height: 200px;">
+            <table class="mobile-table">
+              <thead>
+                <tr>
+                  <th>نام کاربر</th>
+                  <th>لایسنس</th>
+                  <th>تعداد وعده</th>
+                  <th>مبلغ نهایی (تومان)</th>
+                </tr>
+              </thead>
+              <tbody id="admin-financial-list"></tbody>
+            </table>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button onclick="loadFinancialReport()" class="btn-primary" style="font-size: 0.82rem; padding: 8px;">🔄 بروزرسانی جدول مالی</button>
+            <button onclick="downloadFinancialCsv()" class="btn-success" style="font-size: 0.82rem; padding: 8px;">📥 خروجی CSV مبالغ کاربران</button>
+          </div>
+        </div>
+
+        <!-- کاربران مسدود -->
+        <div class="card-sub" style="border-color: #fca5a5; background: #fffaf0;">
+          <h3 style="color: #c2410c;">🚫 کاربران مسدود شده</h3>
+          <div class="table-container" style="max-height: 180px;">
+            <table class="mobile-table">
+              <thead>
+                <tr>
+                  <th>کاربر</th>
+                  <th>نمره منفی</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="banned-users-list"></tbody>
+            </table>
+          </div>
+          <button onclick="loadBannedUsers()" class="btn-primary" style="font-size: 0.82rem; padding: 8px;">🔄 بروزرسانی مسدودی‌ها</button>
+        </div>
+
+        <!-- حضور و غیاب -->
+        <div class="card-sub">
+          <h3 style="color: var(--primary);">📋 ثبت حضور و غیاب (CSV)</h3>
+          <label>انتخاب روز دوره ماهانه:</label>
+          <select id="csv-day-select" onchange="updateCsvMeals()"></select>
+
+          <label>وعده غذایی:</label>
+          <select id="csv-meal-select"></select>
+
+          <label>بارگذاری فایل حاضرین:</label>
+          <input type="file" id="csv-file-input" accept=".csv">
+          <button onclick="processAttendanceCsv()" class="btn-primary">بررسی و اعمال نمرات منفی</button>
+        </div>
+
+        <!-- خروجی CSV جزئیات رزروها -->
+        <div class="card-sub">
+          <h3 style="color: #ea580c;">📊 دریافت خروجی ریز رزروها</h3>
+          <label>فیلتر روز:</label>
+          <select id="export-day-select"><option value="all">-- تمام روزهای ماه --</option></select>
+
+          <label>فیلتر وعده:</label>
+          <select id="export-meal-select"><option value="all">-- تمام وعده‌ها --</option></select>
+          <button onclick="downloadCustomCsv()" class="btn-orange">دریافت فایل CSV</button>
+        </div>
+
+        <!-- تنظیم ماه جدید و مبالغ وعده‌ها -->
+        <div class="card-sub">
+          <h3 style="color: #059669;">⚙️ تعریف و انتشار ماه جدید و قیمت‌ها</h3>
+          <label>عنوان دوره ماهانه:</label>
+          <input type="text" id="cfg-title" value="دوره یک‌ماهه اردیبهشت">
+
+          <label>تاریخ شروع دوره:</label>
+          <input type="date" id="cfg-start-date" onchange="renderAdminScheduleBuilder()">
+
+          <label>وضعیت باز/بسته بودن هنگام انتشار:</label>
+          <select id="cfg-is-open">
+            <option value="true">باز (کاربران می‌توانند رزرو کنند)</option>
+            <option value="false">بسته (ثبت‌نام غیرفعال است)</option>
+          </select>
+
+          <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+            <label style="color:#3730a3; margin-bottom:6px;">💵 تعیین قیمت هر وعده (تومان):</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex:1; min-width: 100px;">
+                <span style="font-size:0.75rem; color:#475569;">صبحانه:</span>
+                <input type="number" id="cfg-price-breakfast" value="15000" style="margin-bottom:0;">
+              </div>
+              <div style="flex:1; min-width: 100px;">
+                <span style="font-size:0.75rem; color:#475569;">ناهار:</span>
+                <input type="number" id="cfg-price-lunch" value="35000" style="margin-bottom:0;">
+              </div>
+              <div style="flex:1; min-width: 100px;">
+                <span style="font-size:0.75rem; color:#475569;">شام:</span>
+                <input type="number" id="cfg-price-dinner" value="30000" style="margin-bottom:0;">
+              </div>
+            </div>
+          </div>
+
+          <label>تنظیم وعده‌های مجاز برای ۳۰ روز ماه:</label>
+          <div id="days-schedule-builder" style="max-height: 280px; overflow-y: auto;"></div>
+
+          <button onclick="saveNewMonthConfig()" class="btn-success" style="margin-top: 12px;">انتشار برنامه ماهانه جدید و قیمت‌ها</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX4vQmcG1-yHTWkoAFkY0JlRlg3Yy_EeY3_8cpheQjlPtUtpN5sUJsXt3fwe4k88Sh/exec";
+
+  const TOTAL_MONTH_DAYS = 30;
+  const ALL_MEALS = ["صبحانه", "ناهار", "شام"];
+
+  let currentUser = null;
+  let currentConfig = null;
+  let scheduleData = {};
+  let userCurrentReservations = [];
+  let currentPrices = { "صبحانه": 0, "ناهار": 0, "شام": 0 };
+  let cachedFinancialData = [];
+
+  function showLoading(show) {
+    document.getElementById('loader').style.display = show ? 'flex' : 'none';
+  }
+
+  function isFormOpen() {
+    if (!currentConfig) return true;
+    const val = String(currentConfig.IsOpen).trim().toLowerCase();
+    return !(val === "false" || val === "0" || val === "no" || val === "بسته");
+  }
+
+  function toEnglishDigits(value) {
+    const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+    const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+    return String(value || "")
+      .replace(/[۰-۹]/g, d => persianDigits.indexOf(d))
+      .replace(/[٠-٩]/g, d => arabicDigits.indexOf(d));
+  }
+
+  function formatMoney(num) {
+    return Number(num || 0).toLocaleString('fa-IR');
+  }
+
+  function parseDateOnlyAsTehranSafeDate(dateValue) {
+    const match = String(dateValue || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return null;
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (!year || !month || !day) return null;
+
+    return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  }
+
+  function getDayShamsiParts(dayNum) {
+    let baseDate = parseDateOnlyAsTehranSafeDate(currentConfig && currentConfig.StartDate);
+    
+    if (!baseDate) {
+      const now = new Date();
+      const tehranParts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Tehran",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(now);
+
+      const getPart = type => tehranParts.find(p => p.type === type)?.value;
+      baseDate = new Date(Date.UTC(
+        Number(getPart("year")),
+        Number(getPart("month")) - 1,
+        Number(getPart("day")),
+        12, 0, 0
+      ));
+    }
+
+    const targetDate = new Date(baseDate);
+    targetDate.setUTCDate(baseDate.getUTCDate() + Number(dayNum) - 1);
+
+    const formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      timeZone: "Asia/Tehran",
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    const parts = formatter.formatToParts(targetDate);
+    const getVal = type => (parts.find(p => p.type === type) || {}).value || "";
+
+    return {
+      weekday: getVal("weekday"),
+      year: toEnglishDigits(getVal("year")),
+      month: toEnglishDigits(getVal("month")),
+      day: toEnglishDigits(getVal("day"))
+    };
+  }
+
+  function getDayShamsiInfo(dayNum) {
+    const p = getDayShamsiParts(dayNum);
+    return `${p.weekday} ${p.year}/${p.month}/${p.day}`;
+  }
+
+  function normalizeShamsiInput(value) {
+    let text = toEnglishDigits(value).replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+    const numbers = text.match(/\d+/g);
+    if (!numbers) return null;
+
+    if (numbers.length === 1) {
+      const d = parseInt(numbers[0], 10);
+      if (d >= 1 && d <= 31) return { type: 'dayOnly', day: String(d).padStart(2, "0") };
+      return null;
+    }
+
+    let year, month, day;
+    if (numbers.length === 3) {
+      if (numbers[0].length >= 4) {
+        [year, month, day] = numbers.map(Number);
+      } else if (numbers[2].length >= 4) {
+        [day, month, year] = numbers.map(Number);
+      } else {
+        return null;
+      }
+      return {
+        type: 'full',
+        str: `${year}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`
+      };
+    }
+    return null;
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('food_system_user');
+    if (savedUser) {
+      try {
+        currentUser = JSON.parse(savedUser);
+        proceedAfterLogin();
+      } catch (e) {
+        localStorage.removeItem('food_system_user');
+      }
+    }
+  });
+
+  async function login() {
+    const license = document.getElementById('license-input').value.trim();
+    if (!license) return alert("سرورم، لطفاً کد لایسنس را وارد نمایید!");
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "login", license: license })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        currentUser = data.user;
+        localStorage.setItem('food_system_user', JSON.stringify(currentUser));
+        await proceedAfterLogin();
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert("خطا در ورود: " + err);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function proceedAfterLogin() {
+    showLoading(true);
+    try {
+      await loadConfig();
+      document.getElementById('login-section').classList.add('hidden');
+
+      if (currentUser.role === "admin") {
+        initAdminPanel();
+      } else {
+        await initUserPanel();
+      }
+    } catch (e) {
+      alert("خطا در بارگذاری: " + e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function loadConfig() {
+    const res = await fetch(SCRIPT_URL + "?action=getConfig");
+    const data = await res.json();
+    if (data.success) {
+      currentConfig = data.config;
+      if (currentConfig.StartDate) {
+        const m = String(currentConfig.StartDate).match(/\d{4}-\d{2}-\d{2}/);
+        if (m) currentConfig.StartDate = m[0];
+      }
+      try {
+        scheduleData = JSON.parse(currentConfig.Schedule);
+      } catch (e) {
+        scheduleData = {};
+      }
+      try {
+        currentPrices = JSON.parse(currentConfig.Prices || "{}");
+      } catch (e) {
+        currentPrices = { "صبحانه": 0, "ناهار": 0, "شام": 0 };
+      }
+    }
+  }
+
+  async function initUserPanel() {
+    document.getElementById('user-section').classList.remove('hidden');
+    document.getElementById('user-name-display').innerText = currentUser.name;
+    
+    const penalty = Number(currentUser.penalty) || 0;
+    const penaltyDisplay = document.getElementById('user-penalty-display');
+    penaltyDisplay.innerText = penalty;
+
+    if (penalty >= 7) {
+      penaltyDisplay.classList.add('penalty-danger');
+      document.getElementById('banned-msg').style.display = 'block';
+      document.getElementById('user-active-content').classList.add('hidden');
+      return;
+    } else {
+      penaltyDisplay.classList.remove('penalty-danger');
+      document.getElementById('banned-msg').style.display = 'none';
+      document.getElementById('user-active-content').classList.remove('hidden');
+    }
+
+    document.getElementById('form-title-display').innerText = currentConfig.FormTitle || "دوره ماهانه";
+
+    const badge = document.getElementById('form-status-badge');
+    const open = isFormOpen();
+    if (open) {
+      badge.className = "status-pill status-open";
+      badge.innerText = "🟢 ثبت‌نام باز است";
+    } else {
+      badge.className = "status-pill status-closed";
+      badge.innerText = "🔒 ثبت‌نام بسته است";
+    }
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "getUserReservations",
+          license: currentUser.license,
+          formTitle: currentConfig.FormTitle
+        })
+      });
+      const checkData = await res.json();
+
+      if (checkData.hasReserved && checkData.reservations.length > 0) {
+        userCurrentReservations = checkData.reservations;
+        calculateAndDisplayUserCost();
+        showReservedState();
+      } else {
+        document.getElementById('user-cost-display').innerText = "0 تومان";
+        if (!open) {
+          document.getElementById('form-closed-msg').style.display = 'block';
+          document.getElementById('reservation-table-container').classList.add('hidden');
+          document.getElementById('already-reserved-container').classList.add('hidden');
+        } else {
+          document.getElementById('form-closed-msg').style.display = 'none';
+          showFormState();
+          buildMealsGrid();
+          updateLiveCostCalculation();
+        }
+      }
+    } catch (e) {
+      alert("خطا در بررسی وضعیت: " + e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function calculateAndDisplayUserCost() {
+    let total = 0;
+    userCurrentReservations.forEach(item => {
+      const p = Number(item.price) || Number(currentPrices[item.meal]) || 0;
+      total += p;
+    });
+    const formatted = formatMoney(total) + " تومان";
+    document.getElementById('user-cost-display').innerText = formatted;
+    const badge = document.getElementById('reserved-total-cost-badge');
+    if (badge) badge.innerText = "مبلغ کل: " + formatted;
+  }
+
+  function showReservedState() {
+    document.getElementById('form-closed-msg').style.display = 'none';
+    document.getElementById('reservation-table-container').classList.add('hidden');
+    document.getElementById('already-reserved-container').classList.remove('hidden');
+    renderUserReservationsTable();
+  }
+
+  function showFormState() {
+    document.getElementById('form-closed-msg').style.display = 'none';
+    document.getElementById('already-reserved-container').classList.add('hidden');
+    document.getElementById('reservation-table-container').classList.remove('hidden');
+  }
+
+  function toggleSelectAllMeals(check) {
+    const checkboxes = document.querySelectorAll('#meals-grid input[type="checkbox"]');
+    checkboxes.forEach(cb => { cb.checked = check; });
+    updateLiveCostCalculation();
+  }
+
+  function updateLiveCostCalculation() {
+    const checkboxes = document.querySelectorAll('#meals-grid input[type="checkbox"]:checked');
+    let total = 0;
+    checkboxes.forEach(cb => {
+      const meal = cb.dataset.meal;
+      const price = Number(currentPrices[meal]) || 0;
+      total += price;
+    });
+    document.getElementById('selected-count').innerText = checkboxes.length;
+    document.getElementById('live-total-cost').innerText = formatMoney(total);
+    document.getElementById('user-cost-display').innerText = formatMoney(total) + " تومان";
+  }
+
+  function buildMealsGrid() {
+    const table = document.getElementById('meals-grid');
+    table.innerHTML = "";
+
+    let headerHtml = "<tr><th>روز و تاریخ</th>";
+    ALL_MEALS.forEach(m => { 
+      const pr = Number(currentPrices[m]) || 0;
+      headerHtml += `<th>${m}<br><small style="font-size:0.68rem; color:#64748b;">(${formatMoney(pr)} ت)</small></th>`; 
+    });
+    headerHtml += "</tr>";
+    table.innerHTML += headerHtml;
+
+    for (let dayNum = 1; dayNum <= TOTAL_MONTH_DAYS; dayNum++) {
+      const dayKey = "روز " + dayNum;
+      const availableMeals = scheduleData[dayKey] || [];
+      const shamsiLabel = getDayShamsiInfo(dayNum);
+
+      if (availableMeals.length > 0) {
+        let rowHtml = `<tr>
+          <td style="text-align: right; padding: 6px 10px; background: #f8fafc;">
+            <div style="font-weight: 800; font-size: 0.85rem;">${dayKey}</div>
+            <span class="date-tag">${shamsiLabel}</span>
+          </td>`;
+        ALL_MEALS.forEach(m => {
+          if (availableMeals.includes(m)) {
+            rowHtml += `<td>
+              <label class="checkbox-wrap">
+                <input type="checkbox" data-day="${dayKey}" data-meal="${m}" onchange="updateLiveCostCalculation()">
+              </label>
+            </td>`;
+          } else {
+            rowHtml += `<td style="color: #cbd5e1;">—</td>`;
+          }
+        });
+        rowHtml += "</tr>";
+        table.innerHTML += rowHtml;
+      }
+    }
+  }
+// محاسبه تاریخ و زمان دقیق وعده غذایی (به وقت محلی)
+function getMealDateTime(dayStr, mealName) {
+  const getDayNumber = (dStr) => {
+    const match = String(dStr).match(/\d+/);
+    return match ? parseInt(match[0], 10) : 1;
+  };
+  const dayNum = getDayNumber(dayStr);
+  
+  let baseDate = parseDateOnlyAsTehranSafeDate(currentConfig && currentConfig.StartDate);
+  if (!baseDate) {
+    const nowParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tehran',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date()).split('-');
+    baseDate = new Date(Date.UTC(Number(nowParts[0]), Number(nowParts[1]) - 1, Number(nowParts[2]), 12, 0, 0));
+  }
+
+  const targetDate = new Date(baseDate.getTime());
+  targetDate.setUTCDate(targetDate.getUTCDate() + (dayNum - 1));
+
+  // ساعت پایان مهلت انصراف وعده‌ها (صبحانه ۹:۰۰، ناهار ۱۴:۳۰، شام ۲۱:۳۰)
+  let hour = 9, minute = 0;
+  if (mealName === "ناهار") { hour = 14; minute = 30; }
+  else if (mealName === "شام") { hour = 21; minute = 30; }
+
+  // تاریخ با ساعت دقیق
+  return new Date(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate(), hour, minute, 0);
+}
+
+function renderUserReservationsTable() {
+  const tbody = document.getElementById('user-meals-list');
+  tbody.innerHTML = "";
+
+  const mealRank = { "صبحانه": 1, "ناهار": 2, "شام": 3 };
+  const getDayNumber = (dStr) => {
+    const match = String(dStr).match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+  };
+
+  // مرتب‌سازی بر اساس شماره روز و رتبه وعده
+  userCurrentReservations.sort((a, b) => {
+    const dayDiff = getDayNumber(a.day) - getDayNumber(b.day);
+    if (dayDiff !== 0) return dayDiff;
+    return (mealRank[a.meal] || 0) - (mealRank[b.meal] || 0);
+  });
+
+  const now = new Date();
+
+  // فقط وعده‌های آینده که هنوز زمانشان نرسیده را می‌شماریم
+  let upcomingIndex = 0;
+
+  userCurrentReservations.forEach((item, index) => {
+    const shamsiTag = getDayShamsiInfo(getDayNumber(item.day));
+    const mealPrice = Number(item.price) || (currentPrices[item.meal] || 0);
+    const mealTime = getMealDateTime(item.day, item.meal);
+
+    const isPast = (now >= mealTime);
+    let canCancel = false;
+    let lockReason = "";
+
+    if (isPast) {
+      // وعده سپری شده است
+      canCancel = false;
+      lockReason = "زمان وعده گذشته است";
+    } else {
+      // وعده آینده است؛ ۲ وعده اول آینده قفل هستند
+      if (upcomingIndex < 2) {
+        canCancel = false;
+        lockReason = "غیرقابل حذف (۲ وعده پیش‌رو)";
+      } else {
+        canCancel = true;
+      }
+      upcomingIndex++;
+    }
+
+    const actionCell = canCancel 
+      ? `<button class="btn-cancel-meal" onclick="cancelUserMeal('${item.id}', '${item.day}', '${item.meal}')">❌ انصراف</button>`
+      : `<span style="font-size:0.75rem; color:#94a3b8; font-weight:600; background:#f1f5f9; padding:4px 8px; border-radius:6px; display:inline-block;">${lockReason}</span>`;
+
+    const row = `
+      <tr data-day-name="${item.day}">
+        <td>${index + 1}</td>
+        <td><strong>${item.day}</strong> <span style="font-size:0.75rem; color:#64748b; font-weight:500; display:block; margin-top:2px;">(${shamsiTag})</span></td>
+        <td>${item.meal}</td>
+        <td>${mealPrice.toLocaleString('fa-IR')} تومان</td>
+        <td>${actionCell}</td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
+
+  // اگر فیلتر تاریخی قبلاً اعمال شده بود، دوباره تنظیم شود
+  if (typeof activeReservedSearchText === "string" && activeReservedSearchText.trim() !== "") {
+    applyReservedDateFilter(activeReservedSearchText);
+  }
+}
+  async function cancelUserMeal(resId, day, meal) {
+    if (!confirm(`سرورم، آیا از انصراف وعده «${meal} - ${day}» اطمینان دارید؟`)) return;
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "cancelMeal",
+          reservationId: resId,
+          license: currentUser.license
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+
+      if (data.success) {
+        await initUserPanel();
+      }
+    } catch (e) {
+      alert("خطا در اعمال انصراف: " + e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function searchReservationDate() {
+    const input = document.getElementById("reservation-date-search");
+    const result = document.getElementById("reservation-date-search-result");
+    const query = normalizeShamsiInput(input.value);
+
+    if (!query) {
+      result.textContent = "سرورم، لطفاً تاریخ را صحیح وارد کنید (مثال: 1403/02/15 یا فقط روز مثل 15).";
+      return;
+    }
+
+    const rows = Array.from(document.querySelectorAll("#meals-grid tr")).slice(1);
+    let matchCount = 0;
+
+    rows.forEach(row => {
+      const dayCell = row.cells[0];
+      const dayText = dayCell ? dayCell.innerText : "";
+      const match = dayText.match(/\d+/);
+      const dayNum = match ? Number(match[0]) : null;
+
+      if (!dayNum) return;
+      const p = getDayShamsiParts(dayNum);
+      const fullDateStr = `${p.year}/${p.month}/${p.day}`;
+
+      let isMatch = false;
+      if (query.type === 'dayOnly' && p.day === query.day) isMatch = true;
+      if (query.type === 'full' && fullDateStr === query.str) isMatch = true;
+
+      row.style.display = isMatch ? "" : "none";
+      if (isMatch) matchCount++;
+    });
+
+    result.textContent = matchCount > 0 ? `تعداد ${matchCount} روز منطبق یافت شد.` : "هیچ روزی با این تاریخ یافت نشد.";
+  }
+
+  function clearReservationDateSearch() {
+    document.getElementById("reservation-date-search").value = "";
+    document.getElementById("reservation-date-search-result").textContent = "";
+    document.querySelectorAll("#meals-grid tr").forEach(row => row.style.display = "");
+  }
+
+  function searchReservedDate() {
+    const input = document.getElementById("reserved-date-search");
+    const result = document.getElementById("reserved-date-search-result");
+    const query = normalizeShamsiInput(input.value);
+
+    if (!query) {
+      result.textContent = "سرورم، لطفاً تاریخ را صحیح وارد کنید (مثال: 1403/02/15 یا فقط روز مثل 15).";
+      return;
+    }
+
+    const rows = Array.from(document.querySelectorAll("#user-meals-list tr"));
+    let matchCount = 0;
+
+    rows.forEach(row => {
+      const dayCell = row.cells[1];
+      const dayText = dayCell ? dayCell.innerText : "";
+      const match = dayText.match(/\d+/);
+      const dayNum = match ? Number(match[0]) : null;
+
+      if (!dayNum) return;
+      const p = getDayShamsiParts(dayNum);
+      const fullDateStr = `${p.year}/${p.month}/${p.day}`;
+
+      let isMatch = false;
+      if (query.type === 'dayOnly' && p.day === query.day) isMatch = true;
+      if (query.type === 'full' && fullDateStr === query.str) isMatch = true;
+
+      row.style.display = isMatch ? "" : "none";
+      if (isMatch) matchCount++;
+    });
+
+    result.textContent = matchCount > 0 ? `تعداد ${matchCount} وعده برای این تاریخ یافت شد.` : "هیچ رزروی برای این تاریخ یافت نشد.";
+  }
+
+  function clearReservedDateSearch() {
+    document.getElementById("reserved-date-search").value = "";
+    document.getElementById("reserved-date-search-result").textContent = "";
+    document.querySelectorAll("#user-meals-list tr").forEach(row => row.style.display = "");
+  }
+
+  async function submitReservation() {
+    if (!isFormOpen()) {
+      return alert("سرورم، مهلت ثبت‌نام برای این دوره به اتمام رسیده و فرم بسته شده است.");
+    }
+
+    if (Number(currentUser.penalty) >= 7) {
+      return alert("سرورم، به علت داشتن نمره منفی ۷ یا بالاتر امکان رزرو ندارید.");
+    }
+
+    const checkboxes = document.querySelectorAll('#meals-grid input[type="checkbox"]:checked');
+    if (checkboxes.length === 0) return alert("لطفاً حداقل یک وعده را انتخاب فرمایید.");
+
+    let totalCost = 0;
+    const selections = [];
+    checkboxes.forEach(cb => {
+      const meal = cb.dataset.meal;
+      const price = Number(currentPrices[meal]) || 0;
+      totalCost += price;
+      selections.push({ day: cb.dataset.day, meal: meal, price: price });
+    });
+
+    if (!confirm(`آیا از ثبت نهایی ${checkboxes.length} وعده غذایی به مبلغ کل ${formatMoney(totalCost)} تومان اطمینان دارید؟`)) return;
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "submitReservation",
+          license: currentUser.license,
+          name: currentUser.name,
+          formTitle: currentConfig.FormTitle,
+          selections: selections
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        await initUserPanel();
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      alert("خطا در ثبت: " + err);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function initAdminPanel() {
+    document.getElementById('admin-section').classList.remove('hidden');
+    document.getElementById('admin-name-display').innerText = currentUser.name;
+
+    if (currentConfig && currentConfig.StartDate) {
+      const cleanDate = String(currentConfig.StartDate).match(/\d{4}-\d{2}-\d{2}/);
+      document.getElementById('cfg-start-date').value = cleanDate ? cleanDate[0] : "";
+    } else {
+      document.getElementById('cfg-start-date').value = new Date().toISOString().split('T')[0];
+    }
+
+    document.getElementById('cfg-price-breakfast').value = currentPrices["صبحانه"] || 0;
+    document.getElementById('cfg-price-lunch').value = currentPrices["ناهار"] || 0;
+    document.getElementById('cfg-price-dinner').value = currentPrices["شام"] || 0;
+
+    const open = isFormOpen();
+    document.getElementById('cfg-is-open').value = open ? "true" : "false";
+    updateAdminFormStatusUI();
+
+    renderAdminScheduleBuilder();
+    updateAdminDropdowns();
+    loadBannedUsers();
+    loadFinancialReport();
+  }
+
+  function updateAdminFormStatusUI() {
+    const open = isFormOpen();
+    const txt = document.getElementById('admin-form-status-text');
+    const btn = document.getElementById('toggle-form-status-btn');
+
+    if (open) {
+      txt.innerText = "🟢 باز است (کاربران می‌توانند رزرو کنند)";
+      txt.style.color = "#059669";
+      btn.innerText = "🔒 بستن فرم ثبت‌نام";
+      btn.className = "btn-danger";
+      btn.style.width = "100%";
+    } else {
+      txt.innerText = "🔒 بسته است (مهلت ثبت‌نام تمام شده)";
+      txt.style.color = "#dc2626";
+      btn.innerText = "🔓 بازگشایی مجدد فرم ثبت‌نام";
+      btn.className = "btn-success";
+      btn.style.width = "100%";
+    }
+  }
+
+  async function toggleFormStatus() {
+    const currentlyOpen = isFormOpen();
+    const newStatus = !currentlyOpen;
+    const promptText = newStatus 
+      ? "آیا مایلید فرم ثبت‌نام مجدداً برای کاربران باز شود؟"
+      : "آیا مطمئن هستید که می‌خواهید فرم ثبت‌نام را ببندید تا دیگر کاربری امکان رزرو نداشته باشد؟";
+
+    if (!confirm(promptText)) return;
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "setFormStatus",
+          isOpen: newStatus
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) {
+        if (!currentConfig) currentConfig = {};
+        currentConfig.IsOpen = String(newStatus);
+        updateAdminFormStatusUI();
+      }
+    } catch (e) {
+      alert("خطا در تغییر وضعیت فرم: " + e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function loadFinancialReport() {
+    const tbody = document.getElementById('admin-financial-list');
+    tbody.innerHTML = '<tr><td colspan="4">در حال محاسبه و بارگذاری مبالغ...</td></tr>';
+    
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "getFinancialReport",
+          formTitle: currentConfig.FormTitle
+        })
+      });
+      const data = await res.json();
+
+      if (data.success && data.users && data.users.length > 0) {
+        cachedFinancialData = data.users;
+        tbody.innerHTML = "";
+        let grandTotal = 0;
+        data.users.forEach(u => {
+          grandTotal += Number(u.totalAmount) || 0;
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${u.name}</strong></td>
+              <td><small style="color:#64748b;">${u.license}</small></td>
+              <td><span class="status-pill status-open">${u.mealCount} وعده</span></td>
+              <td><strong style="color:#15803d;">${formatMoney(u.totalAmount)}</strong></td>
+            </tr>
+          `;
+        });
+        document.getElementById('admin-total-income').innerText = formatMoney(grandTotal) + " تومان";
+      } else {
+        cachedFinancialData = [];
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#64748b;">هیچ رکوردی برای این دوره ثبت نشده است.</td></tr>';
+        document.getElementById('admin-total-income').innerText = "0 تومان";
+      }
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:red;">خطا در دریافت گزارش مالی!</td></tr>';
+    }
+  }
+
+  function downloadFinancialCsv() {
+    if (!cachedFinancialData || cachedFinancialData.length === 0) {
+      return alert("هیچ داده مالی برای خروجی وجود ندارد!");
+    }
+
+    let csvContent = "ردیف,نام و نام خانوادگی,کد لایسنس,تعداد وعده انتخاب شده,مبلغ نهایی (تومان),عنوان دوره\n";
+    let grandTotal = 0;
+
+    cachedFinancialData.forEach((u, idx) => {
+      grandTotal += Number(u.totalAmount) || 0;
+      csvContent += `${idx + 1},"${u.name}","${u.license}",${u.mealCount},${u.totalAmount},"${currentConfig.FormTitle}"\n`;
+    });
+
+    csvContent += `\n,"مجموع کل درآمد دوره",,,${grandTotal},"${currentConfig.FormTitle}"\n`;
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `گزارش_مالی_کاربران_${currentConfig.FormTitle}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function renderAdminScheduleBuilder() {
+    const builder = document.getElementById('days-schedule-builder');
+    builder.innerHTML = "";
+
+    const selectedStartDate = document.getElementById('cfg-start-date').value;
+    if (selectedStartDate && currentConfig) {
+      currentConfig.StartDate = selectedStartDate;
+    }
+
+    for (let d = 1; d <= TOTAL_MONTH_DAYS; d++) {
+      const dayKey = "روز " + d;
+      const activeForDay = scheduleData[dayKey] || ["صبحانه", "ناهار", "شام"];
+      const shamsiLabel = getDayShamsiInfo(d);
+
+      let dHtml = `<div class="day-config-row">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-weight: 800; color: var(--primary); font-size: 0.88rem;">${dayKey}</span>
+          <span class="date-tag">${shamsiLabel}</span>
+        </div>
+        <div class="meal-checkboxes">`;
+      
+      ALL_MEALS.forEach(meal => {
+        const isChecked = activeForDay.includes(meal) ? "checked" : "";
+        dHtml += `<label style="display:inline-flex; align-items:center; gap:4px; font-size:0.8rem; cursor:pointer;">
+          <input type="checkbox" class="schedule-checkbox" data-day="${dayKey}" data-meal="${meal}" ${isChecked}> ${meal}
+        </label>`;
+      });
+
+      dHtml += `</div></div>`;
+      builder.innerHTML += dHtml;
+    }
+  }
+
+  async function loadBannedUsers() {
+    const tbody = document.getElementById('banned-users-list');
+    tbody.innerHTML = '<tr><td colspan="3">در حال بارگذاری...</td></tr>';
+    
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "getBannedUsers" })
+      });
+      const data = await res.json();
+
+      if (data.success && data.users && data.users.length > 0) {
+        tbody.innerHTML = "";
+        data.users.forEach(u => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${u.name}</strong><br><small style="color:#64748b;">${u.license}</small></td>
+              <td><span class="penalty-pill penalty-danger">${u.penalty}</span></td>
+              <td>
+                <button onclick="unbanUser('${u.license}', '${u.name}')" class="btn-unban">
+                  🔄 صفر کردن نمره منفی
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="3" style="color:#059669; font-weight:bold;">✨ هیچ کاربر مسدودی یافت نشد.</td></tr>';
+      }
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="3" style="color:red;">خطا در دریافت لیست!</td></tr>';
+    }
+  }
+
+  async function unbanUser(license, name) {
+    if (!confirm(`سرورم، آیا از رفع مسدودی «${name}» اطمینان دارید؟`)) return;
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "unbanUser", license: license })
+      });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) await loadBannedUsers();
+    } catch (err) {
+      alert("خطا در عملیات: " + err);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function updateAdminDropdowns() {
+    const csvDay = document.getElementById('csv-day-select');
+    const expDay = document.getElementById('export-day-select');
+    const expMeal = document.getElementById('export-meal-select');
+
+    csvDay.innerHTML = "";
+    expDay.innerHTML = '<option value="all">-- تمام روزهای ماه --</option>';
+    expMeal.innerHTML = '<option value="all">-- تمام وعده‌ها --</option>';
+
+    for (let d = 1; d <= TOTAL_MONTH_DAYS; d++) {
+      const dayKey = "روز " + d;
+      const shamsiLabel = getDayShamsiInfo(d);
+      if ((scheduleData[dayKey] || []).length > 0) {
+        csvDay.innerHTML += `<option value="${dayKey}">${dayKey} (${shamsiLabel})</option>`;
+        expDay.innerHTML += `<option value="${dayKey}">${dayKey} (${shamsiLabel})</option>`;
+      }
+    }
+
+    ALL_MEALS.forEach(m => {
+      expMeal.innerHTML += `<option value="${m}">${m}</option>`;
+    });
+
+    updateCsvMeals();
+  }
+
+  function updateCsvMeals() {
+    const day = document.getElementById('csv-day-select').value;
+    const csvMeal = document.getElementById('csv-meal-select');
+    csvMeal.innerHTML = "";
+    const meals = scheduleData[day] || [];
+    meals.forEach(m => {
+      csvMeal.innerHTML += `<option value="${m}">${m}</option>`;
+    });
+  }
+
+  async function saveNewMonthConfig() {
+    const title = document.getElementById('cfg-title').value.trim();
+    const startDate = document.getElementById('cfg-start-date').value;
+    const isOpen = document.getElementById('cfg-is-open').value === "true";
+
+    const prices = {
+      "صبحانه": Number(document.getElementById('cfg-price-breakfast').value) || 0,
+      "ناهار": Number(document.getElementById('cfg-price-lunch').value) || 0,
+      "شام": Number(document.getElementById('cfg-price-dinner').value) || 0
+    };
+
+    if (!title) return alert("لطفاً عنوان دوره ماهانه را وارد فرمایید.");
+    if (!startDate) return alert("لطفاً تاریخ شروع دوره را انتخاب فرمایید.");
+
+    const newSchedule = {};
+    for (let d = 1; d <= TOTAL_MONTH_DAYS; d++) {
+      const dayKey = "روز " + d;
+      const checkedBoxes = document.querySelectorAll(`.schedule-checkbox[data-day="${dayKey}"]:checked`);
+      if (checkedBoxes.length > 0) {
+        newSchedule[dayKey] = Array.from(checkedBoxes).map(cb => cb.dataset.meal);
+      }
+    }
+
+    if (Object.keys(newSchedule).length === 0) {
+      return alert("حداقل باید یک روز و وعده فعال انتخاب گردد!");
+    }
+
+    if (!confirm("آیا از انتشار ساختار دوره ماهانه و ثبت تعرفه قیمت‌ها اطمینان دارید؟")) return;
+
+    showLoading(true);
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "saveConfig",
+          formTitle: title,
+          startDate: startDate,
+          isOpen: isOpen,
+          prices: prices,
+          schedule: newSchedule
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert("سرورم، تنظیمات و تعرفه‌ها با موفقیت ذخیره شد!");
+        await loadConfig();
+        initAdminPanel();
+      } else {
+        alert("خطا در ذخیره: " + result.message);
+      }
+    } catch (err) {
+      alert("خطا در ذخیره اطلاعات: " + err.message);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function processAttendanceCsv() {
+    const fileInput = document.getElementById('csv-file-input');
+    const day = document.getElementById('csv-day-select').value;
+    const meal = document.getElementById('csv-meal-select').value;
+
+    if (!fileInput.files[0]) return alert("لطفاً فایل CSV حاضرین را انتخاب نمایید!");
+    if (!day || !meal) return alert("روز یا وعده انتخاب نشده است!");
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const lines = e.target.result.split(/\r?\n/);
+      const presentNames = [];
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed) {
+          const name = trimmed.split(/[,;\t]/)[0].replace(/["']/g, '').trim();
+          if (name) presentNames.push(name);
+        }
+      });
+
+      if (presentNames.length === 0) return alert("فایل خالی است!");
+
+      if (confirm(`بررسی غایبین برای «${day} - ${meal}» انجام شود؟`)) {
+        showLoading(true);
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: "processCsvAttendance",
+              day: day,
+              meal: meal,
+              formTitle: currentConfig.FormTitle,
+              presentNames: presentNames
+            })
+          });
+          const data = await res.json();
+          alert(data.message);
+          fileInput.value = "";
+          await loadBannedUsers();
+        } catch (err) {
+          alert("خطا: " + err);
+        } finally {
+          showLoading(false);
+        }
+      }
+    };
+    reader.readAsText(fileInput.files[0], "UTF-8");
+  }
+
+  async function downloadCustomCsv() {
+    const day = document.getElementById('export-day-select').value;
+    const meal = document.getElementById('export-meal-select').value;
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "exportData",
+          formTitle: currentConfig.FormTitle,
+          day: day,
+          meal: meal
+        })
+      });
+      const data = await res.json();
+
+      if (!data.success || !data.rows || data.rows.length === 0) {
+        return alert("هیچ رکوردی یافت نشد!");
+      }
+
+      let csvContent = "ردیف,شناسه,تاریخ ثبت,لایسنس,نام,روز,وعده,مبلغ (تومان),وضعیت حضور,عنوان دوره\n";
+      data.rows.forEach((r, idx) => {
+        let st = "در انتظار";
+        if (r.status === "present") st = "حاضر";
+        if (r.status === "absent") st = "غایب";
+        csvContent += `${idx + 1},"${r.id}","${r.date}","${r.license}","${r.name}","${r.day}","${r.meal}",${r.price || 0},"${st}","${r.formTitle}"\n`;
+      });
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `گزارش_ریز_رزروها_${currentConfig.FormTitle}_${day}_${meal}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      alert("خطا در استخراج: " + err);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function logout() {
+    currentUser = null;
+    localStorage.removeItem('food_system_user');
+    document.getElementById('user-section').classList.add('hidden');
+    document.getElementById('admin-section').classList.add('hidden');
+    document.getElementById('login-section').classList.remove('hidden');
+    document.getElementById('license-input').value = "";
+  }
+</script>
+
+</body>
+</html>
