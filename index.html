@@ -803,16 +803,31 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('food_system_user');
-    if (savedUser) {
-      try {
-        currentUser = JSON.parse(savedUser);
+  const savedUser = localStorage.getItem('food_system_user');
+  if (savedUser) {
+    try {
+      currentUser = JSON.parse(savedUser);
+      // استعلام زنده وضعیت کاربر و نمره منفی از سرور
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'login', license: currentUser.license })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.user) {
+          currentUser = data.user;
+          localStorage.setItem('food_system_user', JSON.stringify(currentUser));
+        }
         proceedAfterLogin();
-      } catch (e) {
-        localStorage.removeItem('food_system_user');
-      }
+      })
+      .catch(() => {
+        proceedAfterLogin();
+      });
+    } catch (e) {
+      localStorage.removeItem('food_system_user');
     }
-  });
+  }
+});
 
   async function login() {
     const license = document.getElementById('license-input').value.trim();
@@ -1233,7 +1248,6 @@ function renderUserReservationsTable() {
     document.getElementById("reserved-date-search-result").textContent = "";
     document.querySelectorAll("#user-meals-list tr").forEach(row => row.style.display = "");
   }
-
   async function submitReservation() {
     if (!isFormOpen()) {
       return alert("سرورم، مهلت ثبت‌نام برای این دوره به اتمام رسیده و فرم بسته شده است.");
@@ -1275,6 +1289,12 @@ function renderUserReservationsTable() {
         await initUserPanel();
       } else {
         alert(data.message);
+        // اگر پیام خطا درباره مسدودی یا نمره منفی بود، صفحه فوراً قفل شود
+        if (data.message && (data.message.includes("مسدود") || data.message.includes("نمره منفی"))) {
+          currentUser.penalty = 7;
+          localStorage.setItem('food_system_user', JSON.stringify(currentUser));
+          await initUserPanel();
+        }
       }
     } catch (err) {
       alert("خطا در ثبت: " + err);
