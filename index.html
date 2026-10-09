@@ -515,7 +515,7 @@
               <span id="reserved-total-cost-badge" class="price-pill">مبلغ: ۰ تومان</span>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
-              ⚠️ <strong>قانون انصراف:</strong> تنها در صورتی مجاز به انصراف از یک وعده هستید که حداقل ۲ وعده از رزروهای خودتان قبل از آن باقی مانده باشد. با انصراف، هزینه آن کسر خواهد شد.
+              ⚠️ <strong>قانون انصراف:</strong> انصراف از هر وعده تنها تا ساعت ۱۵:۰۰ (۳ بعد از ظهر) روزِ قبل از آن وعده امکان‌پذیر است. پس از این مهلت، امکان انصراف وجود ندارد. با انصراف، هزینه آن کسر خواهد شد.
             </p>
             <!-- فیلتر تاریخ برای انصراف از وعده -->
             <div style="margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1045,104 +1045,114 @@
       }
     }
   }
-// محاسبه تاریخ و زمان دقیق وعده غذایی (به وقت محلی)
-function getMealDateTime(dayStr, mealName) {
-  const getDayNumber = (dStr) => {
-    const match = String(dStr).match(/\d+/);
-    return match ? parseInt(match[0], 10) : 1;
-  };
-  const dayNum = getDayNumber(dayStr);
-  
-  let baseDate = parseDateOnlyAsTehranSafeDate(currentConfig && currentConfig.StartDate);
-  if (!baseDate) {
-    const nowParts = new Intl.DateTimeFormat('en-CA', {
+
+  // زمان فعلی به وقت تهران، به‌صورت شبه-UTC (برای مقایسه امن در همه دستگاه‌ها)
+  function getTehranNowUTC() {
+    const parts = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Tehran',
       year: 'numeric',
       month: '2-digit',
-      day: '2-digit'
-    }).format(new Date()).split('-');
-    baseDate = new Date(Date.UTC(Number(nowParts[0]), Number(nowParts[1]) - 1, Number(nowParts[2]), 12, 0, 0));
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(new Date());
+
+    const getVal = type => Number((parts.find(p => p.type === type) || {}).value);
+    return Date.UTC(
+      getVal('year'),
+      getVal('month') - 1,
+      getVal('day'),
+      getVal('hour') === 24 ? 0 : getVal('hour'),
+      getVal('minute'),
+      getVal('second')
+    );
   }
 
-  const targetDate = new Date(baseDate.getTime());
-  targetDate.setUTCDate(targetDate.getUTCDate() + (dayNum - 1));
+  // تاریخ وعده غذایی (بر اساس روز دوره) به‌صورت شبه-UTC
+  function getMealDateUTC(dayStr) {
+    const getDayNumber = (dStr) => {
+      const match = String(dStr).match(/\d+/);
+      return match ? parseInt(match[0], 10) : 1;
+    };
+    const dayNum = getDayNumber(dayStr);
 
-  // ساعت پایان مهلت انصراف وعده‌ها (صبحانه ۹:۰۰، ناهار ۱۴:۳۰، شام ۲۱:۳۰)
-  let hour = 9, minute = 0;
-  if (mealName === "ناهار") { hour = 14; minute = 30; }
-  else if (mealName === "شام") { hour = 21; minute = 30; }
-
-  // تاریخ با ساعت دقیق
-  return new Date(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate(), hour, minute, 0);
-}
-
-function renderUserReservationsTable() {
-  const tbody = document.getElementById('user-meals-list');
-  tbody.innerHTML = "";
-
-  const mealRank = { "صبحانه": 1, "ناهار": 2, "شام": 3 };
-  const getDayNumber = (dStr) => {
-    const match = String(dStr).match(/\d+/);
-    return match ? parseInt(match[0], 10) : 0;
-  };
-
-  // مرتب‌سازی بر اساس شماره روز و رتبه وعده
-  userCurrentReservations.sort((a, b) => {
-    const dayDiff = getDayNumber(a.day) - getDayNumber(b.day);
-    if (dayDiff !== 0) return dayDiff;
-    return (mealRank[a.meal] || 0) - (mealRank[b.meal] || 0);
-  });
-
-  const now = new Date();
-
-  // فقط وعده‌های آینده که هنوز زمانشان نرسیده را می‌شماریم
-  let upcomingIndex = 0;
-
-  userCurrentReservations.forEach((item, index) => {
-    const shamsiTag = getDayShamsiInfo(getDayNumber(item.day));
-    const mealPrice = Number(item.price) || (currentPrices[item.meal] || 0);
-    const mealTime = getMealDateTime(item.day, item.meal);
-
-    const isPast = (now >= mealTime);
-    let canCancel = false;
-    let lockReason = "";
-
-    if (isPast) {
-      // وعده سپری شده است
-      canCancel = false;
-      lockReason = "زمان وعده گذشته است";
-    } else {
-      // وعده آینده است؛ ۲ وعده اول آینده قفل هستند
-      if (upcomingIndex < 2) {
-        canCancel = false;
-        lockReason = "غیرقابل حذف (۲ وعده پیش‌رو)";
-      } else {
-        canCancel = true;
-      }
-      upcomingIndex++;
+    let baseDate = parseDateOnlyAsTehranSafeDate(currentConfig && currentConfig.StartDate);
+    if (!baseDate) {
+      const nowParts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tehran',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date()).split('-');
+      baseDate = new Date(Date.UTC(Number(nowParts[0]), Number(nowParts[1]) - 1, Number(nowParts[2]), 12, 0, 0));
     }
 
-    const actionCell = canCancel 
-      ? `<button class="btn-cancel-meal" onclick="cancelUserMeal('${item.id}', '${item.day}', '${item.meal}')">❌ انصراف</button>`
-      : `<span style="font-size:0.75rem; color:#94a3b8; font-weight:600; background:#f1f5f9; padding:4px 8px; border-radius:6px; display:inline-block;">${lockReason}</span>`;
-
-    const row = `
-      <tr data-day-name="${item.day}">
-        <td>${index + 1}</td>
-        <td><strong>${item.day}</strong> <span style="font-size:0.75rem; color:#64748b; font-weight:500; display:block; margin-top:2px;">(${shamsiTag})</span></td>
-        <td>${item.meal}</td>
-        <td>${mealPrice.toLocaleString('fa-IR')} تومان</td>
-        <td>${actionCell}</td>
-      </tr>
-    `;
-    tbody.innerHTML += row;
-  });
-
-  // اگر فیلتر تاریخی قبلاً اعمال شده بود، دوباره تنظیم شود
-  if (typeof activeReservedSearchText === "string" && activeReservedSearchText.trim() !== "") {
-    applyReservedDateFilter(activeReservedSearchText);
+    const targetDate = new Date(baseDate.getTime());
+    targetDate.setUTCDate(targetDate.getUTCDate() + (dayNum - 1));
+    return targetDate;
   }
-}
+
+  // مهلت انصراف: ساعت ۱۵:۰۰ روز قبل از وعده (به وقت تهران)
+  function getMealCancelDeadlineUTC(dayStr) {
+    const mealDate = getMealDateUTC(dayStr);
+    const deadline = new Date(mealDate.getTime());
+    deadline.setUTCDate(deadline.getUTCDate() - 1);
+    deadline.setUTCHours(15, 0, 0, 0);
+    return deadline.getTime();
+  }
+
+  function renderUserReservationsTable() {
+    const tbody = document.getElementById('user-meals-list');
+    tbody.innerHTML = "";
+
+    const mealRank = { "صبحانه": 1, "ناهار": 2, "شام": 3 };
+    const getDayNumber = (dStr) => {
+      const match = String(dStr).match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    };
+
+    // مرتب‌سازی بر اساس شماره روز و رتبه وعده
+    userCurrentReservations.sort((a, b) => {
+      const dayDiff = getDayNumber(a.day) - getDayNumber(b.day);
+      if (dayDiff !== 0) return dayDiff;
+      return (mealRank[a.meal] || 0) - (mealRank[b.meal] || 0);
+    });
+
+    const nowTehran = getTehranNowUTC();
+
+    userCurrentReservations.forEach((item, index) => {
+      const shamsiTag = getDayShamsiInfo(getDayNumber(item.day));
+      const mealPrice = Number(item.price) || (currentPrices[item.meal] || 0);
+      const deadline = getMealCancelDeadlineUTC(item.day);
+
+      // انصراف فقط تا ساعت ۱۵:۰۰ روز قبل از وعده مجاز است
+      let canCancel = (nowTehran < deadline);
+      let lockReason = "مهلت انصراف تمام شده است";
+
+      const actionCell = canCancel 
+        ? `<button class="btn-cancel-meal" onclick="cancelUserMeal('${item.id}', '${item.day}', '${item.meal}')">❌ انصراف</button>`
+        : `<span style="font-size:0.75rem; color:#94a3b8; font-weight:600; background:#f1f5f9; padding:4px 8px; border-radius:6px; display:inline-block;">${lockReason}</span>`;
+
+      const row = `
+        <tr data-day-name="${item.day}">
+          <td>${index + 1}</td>
+          <td><strong>${item.day}</strong> <span style="font-size:0.75rem; color:#64748b; font-weight:500; display:block; margin-top:2px;">(${shamsiTag})</span></td>
+          <td>${item.meal}</td>
+          <td>${mealPrice.toLocaleString('fa-IR')} تومان</td>
+          <td>${actionCell}</td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+
+    // اگر فیلتر تاریخی قبلاً اعمال شده بود، دوباره تنظیم شود
+    if (typeof activeReservedSearchText === "string" && activeReservedSearchText.trim() !== "") {
+      applyReservedDateFilter(activeReservedSearchText);
+    }
+  }
+
   async function cancelUserMeal(resId, day, meal) {
     if (!confirm(`سرورم، آیا از انصراف وعده «${meal} - ${day}» اطمینان دارید؟`)) return;
 
@@ -1248,6 +1258,7 @@ function renderUserReservationsTable() {
     document.getElementById("reserved-date-search-result").textContent = "";
     document.querySelectorAll("#user-meals-list tr").forEach(row => row.style.display = "");
   }
+
   async function submitReservation() {
     if (!isFormOpen()) {
       return alert("سرورم، مهلت ثبت‌نام برای این دوره به اتمام رسیده و فرم بسته شده است.");
