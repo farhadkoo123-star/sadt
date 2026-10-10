@@ -190,11 +190,13 @@
       width: auto;
       border: 1px solid #fca5a5;
     }
+    
     .btn-cancel-meal {
       background: #fee2e2;
       color: #991b1b;
       padding: 5px 10px;
       font-size: 0.75rem;
+      font-weight: 700;
       border-radius: 8px;
       border: 1px solid #fca5a5;
       width: auto;
@@ -202,6 +204,22 @@
     }
     .btn-cancel-meal:hover {
       background: #f87171;
+      color: #fff;
+    }
+
+    .btn-book-meal {
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid #a7f3d0;
+      width: auto;
+      cursor: pointer;
+    }
+    .btn-book-meal:hover {
+      background: #10b981;
       color: #fff;
     }
 
@@ -501,25 +519,25 @@
           </button>
         </div>
 
-        <!-- مدیریت وعده‌های رزرو شده و قانون انصراف -->
+        <!-- مدیریت وعده‌های رزرو شده و قانون انصراف / ثبت مجدد -->
         <div id="already-reserved-container" class="hidden">
           <div class="status-card">
-            <div style="font-size: 32px;">🎉</div>
-            <h3 style="color: #065f46; justify-content: center; margin-bottom: 4px;">رزرو ماهانه شما فعال است</h3>
-            <p style="font-size: 0.82rem; color: #047857;">لیست وعده‌های انتخابی شما در جدول زیر ثبت و منظور گردیده است.</p>
+            <div style="font-size: 32px;">🍽️</div>
+            <h3 style="color: #065f46; justify-content: center; margin-bottom: 4px;">مدیریت برنامه و وعده‌های غذایی</h3>
+            <p style="font-size: 0.82rem; color: #047857;">در جدول زیر می‌توانید وضعیت وعده‌ها را مشاهده، انصراف داده یا مجدداً ثبت‌نام نمایید.</p>
           </div>
 
           <div class="card-sub" style="background: #fff;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h3 style="color: #4f46e5; font-size: 0.95rem; margin:0;">📋 لیست وعده‌ها و امکان انصراف</h3>
+              <h3 style="color: #4f46e5; font-size: 0.95rem; margin:0;">📋 جدول وعده‌ها (امکان انصراف و رزرو مجدد)</h3>
               <span id="reserved-total-cost-badge" class="price-pill">مبلغ: ۰ تومان</span>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
-              ⚠️ <strong>قانون انصراف:</strong> انصراف از هر وعده تنها تا ساعت ۱۵:۰۰ (۳ بعد از ظهر) روزِ قبل از آن وعده امکان‌پذیر است. پس از این مهلت، امکان انصراف وجود ندارد. با انصراف، هزینه آن کسر خواهد شد.
+              ⚠️ <strong>قانون سامانه:</strong> تا <strong>ساعت ۱۵:۰۰ (۳ بعدازظهر) روزِ قبل از هر وعده</strong>، هم امکان <strong>انصراف</strong> دارید، هم امکان <strong>رزرو مجدد</strong> و هم امکان <strong>ثبت‌نام برای وعده‌هایی که قبلاً انتخاب نکرده‌اید</strong>. پس از ساعت ۱۵:۰۰ روز قبل، وعده قفل می‌گردد.
             </p>
-            <!-- فیلتر تاریخ برای انصراف از وعده -->
+            <!-- فیلتر تاریخ برای جستجوی روز -->
             <div style="margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-              <label for="reserved-date-search" style="margin-bottom: 6px;">🔍 جستجوی روز جهت انصراف سریع:</label>
+              <label for="reserved-date-search" style="margin-bottom: 6px;">🔍 جستجوی روز با تاریخ شمسی:</label>
               <div style="display: flex; gap: 8px;">
                 <input type="text" id="reserved-date-search" placeholder="مثال: 1403/02/15 یا 15" style="margin-bottom: 0;">
                 <button type="button" class="btn-secondary" onclick="searchReservedDate()" style="white-space: nowrap;">جستجو</button>
@@ -527,14 +545,13 @@
               </div>
               <p id="reserved-date-search-result" style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;"></p>
             </div>
-            <div class="table-container" style="max-height: 300px;">
+            <div class="table-container" style="max-height: 360px;">
               <table class="mobile-table">
                 <thead>
                   <tr>
-                    <th>ردیف</th>
-                    <th>روز و تاریخ ماه</th>
+                    <th>روز و تاریخ</th>
                     <th>وعده</th>
-                    <th>مبلغ (تومان)</th>
+                    <th>وضعیت / هزینه</th>
                     <th>عملیات</th>
                   </tr>
                 </thead>
@@ -803,35 +820,34 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-  const savedUser = localStorage.getItem('food_system_user');
-  if (savedUser) {
-    try {
-      currentUser = JSON.parse(savedUser);
-      // استعلام زنده وضعیت کاربر و نمره منفی از سرور
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'login', license: currentUser.license })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.user) {
-          currentUser = data.user;
-          localStorage.setItem('food_system_user', JSON.stringify(currentUser));
-        }
-        proceedAfterLogin();
-      })
-      .catch(() => {
-        proceedAfterLogin();
-      });
-    } catch (e) {
-      localStorage.removeItem('food_system_user');
+    const savedUser = localStorage.getItem('food_system_user');
+    if (savedUser) {
+      try {
+        currentUser = JSON.parse(savedUser);
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'login', license: currentUser.license })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            currentUser = data.user;
+            localStorage.setItem('food_system_user', JSON.stringify(currentUser));
+          }
+          proceedAfterLogin();
+        })
+        .catch(() => {
+          proceedAfterLogin();
+        });
+      } catch (e) {
+        localStorage.removeItem('food_system_user');
+      }
     }
-  }
-});
+  });
 
   async function login() {
     const license = document.getElementById('license-input').value.trim();
-    if (!license) return alert("سرورم، لطفاً کد لایسنس را وارد نمایید!");
+    if (!license) return alert("سرورم، لطفاً شماره پرونده را وارد نمایید!");
 
     showLoading(true);
     try {
@@ -938,12 +954,12 @@
       });
       const checkData = await res.json();
 
-      if (checkData.hasReserved && checkData.reservations.length > 0) {
-        userCurrentReservations = checkData.reservations;
-        calculateAndDisplayUserCost();
+      userCurrentReservations = (checkData.success && checkData.reservations) ? checkData.reservations : [];
+      calculateAndDisplayUserCost();
+
+      if (userCurrentReservations.length > 0) {
         showReservedState();
       } else {
-        document.getElementById('user-cost-display').innerText = "0 تومان";
         if (!open) {
           document.getElementById('form-closed-msg').style.display = 'block';
           document.getElementById('reservation-table-container').classList.add('hidden');
@@ -1046,7 +1062,7 @@
     }
   }
 
-  // زمان فعلی به وقت تهران، به‌صورت شبه-UTC (برای مقایسه امن در همه دستگاه‌ها)
+  // زمان فعلی به وقت تهران
   function getTehranNowUTC() {
     const parts = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Tehran',
@@ -1070,7 +1086,6 @@
     );
   }
 
-  // تاریخ وعده غذایی (بر اساس روز دوره) به‌صورت شبه-UTC
   function getMealDateUTC(dayStr) {
     const getDayNumber = (dStr) => {
       const match = String(dStr).match(/\d+/);
@@ -1094,7 +1109,7 @@
     return targetDate;
   }
 
-  // مهلت انصراف: ساعت ۱۵:۰۰ روز قبل از وعده (به وقت تهران)
+  // مهلت انصراف و رزرو مجدد: ساعت ۱۵:۰۰ روزِ قبل از وعده (به وقت تهران)
   function getMealCancelDeadlineUTC(dayStr) {
     const mealDate = getMealDateUTC(dayStr);
     const deadline = new Date(mealDate.getTime());
@@ -1103,58 +1118,73 @@
     return deadline.getTime();
   }
 
+  // رندر هوشمند جدول وعده‌ها (امکان انصراف، رزرو مجدد، و رزرو وعده‌های ثبت‌نشده تا ساعت ۱۵:۰۰ روز قبل)
   function renderUserReservationsTable() {
     const tbody = document.getElementById('user-meals-list');
     tbody.innerHTML = "";
 
-    const mealRank = { "صبحانه": 1, "ناهار": 2, "شام": 3 };
-    const getDayNumber = (dStr) => {
-      const match = String(dStr).match(/\d+/);
-      return match ? parseInt(match[0], 10) : 0;
-    };
-
-    // مرتب‌سازی بر اساس شماره روز و رتبه وعده
-    userCurrentReservations.sort((a, b) => {
-      const dayDiff = getDayNumber(a.day) - getDayNumber(b.day);
-      if (dayDiff !== 0) return dayDiff;
-      return (mealRank[a.meal] || 0) - (mealRank[b.meal] || 0);
-    });
-
     const nowTehran = getTehranNowUTC();
 
-    userCurrentReservations.forEach((item, index) => {
-      const shamsiTag = getDayShamsiInfo(getDayNumber(item.day));
-      const mealPrice = Number(item.price) || (currentPrices[item.meal] || 0);
-      const deadline = getMealCancelDeadlineUTC(item.day);
+    for (let dayNum = 1; dayNum <= TOTAL_MONTH_DAYS; dayNum++) {
+      const dayKey = "روز " + dayNum;
+      const availableMeals = scheduleData[dayKey] || [];
+      if (availableMeals.length === 0) continue;
 
-      // انصراف فقط تا ساعت ۱۵:۰۰ روز قبل از وعده مجاز است
-      let canCancel = (nowTehran < deadline);
-      let lockReason = "مهلت انصراف تمام شده است";
+      const shamsiTag = getDayShamsiInfo(dayNum);
+      const deadline = getMealCancelDeadlineUTC(dayKey);
+      const isBeforeDeadline = (nowTehran < deadline);
 
-      const actionCell = canCancel 
-        ? `<button class="btn-cancel-meal" onclick="cancelUserMeal('${item.id}', '${item.day}', '${item.meal}')">❌ انصراف</button>`
-        : `<span style="font-size:0.75rem; color:#94a3b8; font-weight:600; background:#f1f5f9; padding:4px 8px; border-radius:6px; display:inline-block;">${lockReason}</span>`;
+      availableMeals.forEach(meal => {
+        // آیا این وعده هم‌اکنون برای کاربر رزرو است؟
+        const bookedItem = userCurrentReservations.find(r => r.day === dayKey && r.meal === meal);
+        const mealPrice = Number(currentPrices[meal]) || (bookedItem ? Number(bookedItem.price) : 0);
 
-      const row = `
-        <tr data-day-name="${item.day}">
-          <td>${index + 1}</td>
-          <td><strong>${item.day}</strong> <span style="font-size:0.75rem; color:#64748b; font-weight:500; display:block; margin-top:2px;">(${shamsiTag})</span></td>
-          <td>${item.meal}</td>
-          <td>${mealPrice.toLocaleString('fa-IR')} تومان</td>
-          <td>${actionCell}</td>
-        </tr>
-      `;
-      tbody.innerHTML += row;
-    });
+        let statusCellHtml = "";
+        let actionCellHtml = "";
 
-    // اگر فیلتر تاریخی قبلاً اعمال شده بود، دوباره تنظیم شود
-    if (typeof activeReservedSearchText === "string" && activeReservedSearchText.trim() !== "") {
-      applyReservedDateFilter(activeReservedSearchText);
+        if (bookedItem) {
+          statusCellHtml = `
+            <span class="status-pill status-open">✅ رزرو شده</span>
+            <div style="font-size:0.75rem; color:#15803d; font-weight:700; margin-top:2px;">${formatMoney(mealPrice)} ت</div>
+          `;
+          
+          if (isBeforeDeadline) {
+            actionCellHtml = `<button class="btn-cancel-meal" onclick="cancelUserMeal('${bookedItem.id}', '${dayKey}', '${meal}')">❌ انصراف</button>`;
+          } else {
+            actionCellHtml = `<span style="font-size:0.75rem; color:#94a3b8; font-weight:600; background:#f1f5f9; padding:4px 8px; border-radius:6px; display:inline-block;">مهلت تمام شده</span>`;
+          }
+        } else {
+          statusCellHtml = `
+            <span style="font-size:0.78rem; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:8px; display:inline-block;">رزرو نشده</span>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">${formatMoney(mealPrice)} ت</div>
+          `;
+
+          if (isBeforeDeadline) {
+            actionCellHtml = `<button class="btn-book-meal" onclick="bookSingleMeal('${dayKey}', '${meal}', ${mealPrice})">➕ ثبت‌نام</button>`;
+          } else {
+            actionCellHtml = `<span style="font-size:0.75rem; color:#94a3b8; font-weight:600; background:#f1f5f9; padding:4px 8px; border-radius:6px; display:inline-block;">مهلت تمام شده</span>`;
+          }
+        }
+
+        const row = `
+          <tr data-day-name="${dayKey}">
+            <td style="text-align: right; padding: 8px;">
+              <strong>${dayKey}</strong>
+              <span style="font-size:0.74rem; color:#64748b; font-weight:500; display:block; margin-top:2px;">(${shamsiTag})</span>
+            </td>
+            <td><strong>${meal}</strong></td>
+            <td>${statusCellHtml}</td>
+            <td>${actionCellHtml}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
     }
   }
 
+  // عملیات انصراف
   async function cancelUserMeal(resId, day, meal) {
-    if (!confirm(`سرورم، آیا از انصراف وعده «${meal} - ${day}» اطمینان دارید؟`)) return;
+    if (!confirm(`سرورم، آیا از انصراف وعده «${meal} - ${day}» اطمینان دارید؟\n(تا ساعت ۱۵:۰۰ روز قبل همچنان می‌توانید دوباره این وعده را ثبت کنید)`)) return;
 
     showLoading(true);
     try {
@@ -1174,6 +1204,41 @@
       }
     } catch (e) {
       alert("خطا در اعمال انصراف: " + e);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // عملیات ثبت مجدد یا ثبت‌نام وعده جدید
+  async function bookSingleMeal(day, meal, price) {
+    if (Number(currentUser.penalty) >= 7) {
+      return alert("سرورم، به دلیل داشتن نمره منفی ۷ یا بالاتر امکان رزرو ندارید.");
+    }
+
+    if (!confirm(`آیا مایلید وعده «${meal} - ${day}» به مبلغ ${formatMoney(price)} تومان برای شما ثبت گردد؟`)) return;
+
+    showLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: "reserveSingleMeal",
+          license: currentUser.license,
+          name: currentUser.name,
+          formTitle: currentConfig.FormTitle,
+          day: day,
+          meal: meal,
+          price: price
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+
+      if (data.success) {
+        await initUserPanel();
+      }
+    } catch (e) {
+      alert("خطا در ثبت وعده: " + e);
     } finally {
       showLoading(false);
     }
@@ -1233,7 +1298,7 @@
     let matchCount = 0;
 
     rows.forEach(row => {
-      const dayCell = row.cells[1];
+      const dayCell = row.cells[0];
       const dayText = dayCell ? dayCell.innerText : "";
       const match = dayText.match(/\d+/);
       const dayNum = match ? Number(match[0]) : null;
@@ -1250,7 +1315,7 @@
       if (isMatch) matchCount++;
     });
 
-    result.textContent = matchCount > 0 ? `تعداد ${matchCount} وعده برای این تاریخ یافت شد.` : "هیچ رزروی برای این تاریخ یافت نشد.";
+    result.textContent = matchCount > 0 ? `تعداد ${matchCount} وعده برای این تاریخ یافت شد.` : "هیچ رکوردی برای این تاریخ یافت نشد.";
   }
 
   function clearReservedDateSearch() {
@@ -1300,7 +1365,6 @@
         await initUserPanel();
       } else {
         alert(data.message);
-        // اگر پیام خطا درباره مسدودی یا نمره منفی بود، صفحه فوراً قفل شود
         if (data.message && (data.message.includes("مسدود") || data.message.includes("نمره منفی"))) {
           currentUser.penalty = 7;
           localStorage.setItem('food_system_user', JSON.stringify(currentUser));
