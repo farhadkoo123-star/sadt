@@ -233,6 +233,17 @@
       width: auto;
     }
 
+    .btn-report {
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      border-radius: 8px;
+      width: auto;
+    }
+    .btn-report:hover { background: #c7d2fe; }
+
     .hidden { display: none !important; }
 
     .user-badge {
@@ -407,6 +418,77 @@
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== مودال گزارش کامل غیبت‌های کاربر ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 100000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #312e81 0%, #4f46e5 100%);
+      color: #fff;
+    }
+
+    .modal-header h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+
+    .modal-close {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .absence-summary {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #92400e;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
@@ -415,6 +497,17 @@
   <div class="loader-box">
     <div class="spinner"></div>
     <span style="font-weight: 800; color: #334155; font-size: 0.9rem;">لطفاً شکیبا باشید...</span>
+  </div>
+</div>
+
+<!-- مودال گزارش کامل غیبت‌های کاربر -->
+<div id="report-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📊 <span id="report-modal-title">گزارش غیبت‌ها</span></h3>
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="modal-body" id="report-modal-body"></div>
   </div>
 </div>
 
@@ -446,17 +539,20 @@
             ⚠️ نمره منفی: <span id="user-penalty-display" class="penalty-pill">0</span>
           </div>
           <div style="font-size: 0.82rem; margin-top: 3px;">
+            📊 غیبت‌ها — ناهار: <strong id="user-abs-lunch">0</strong> (نصاب ۲) | صبحانه: <strong id="user-abs-breakfast">0</strong> (نصاب ۴)
+          </div>
+          <div style="font-size: 0.82rem; margin-top: 3px;">
             💳 هزینه کل دوره: <span id="user-cost-display" class="price-pill">0 تومان</span>
           </div>
         </div>
         <button onclick="logout()" class="btn-danger">خروج</button>
       </div>
 
-      <!-- پیام مسدودی نمره منفی ۷ -->
+      <!-- پیام مسدودی بر اساس نصاب غیبت‌ها -->
       <div id="banned-msg" class="status-card" style="background:#fee2e2; border-color:#fca5a5; display:none;">
         <div style="font-size: 38px;">🚫</div>
         <h3 style="color: #991b1b; justify-content: center;">حساب شما محدود شده است</h3>
-        <p style="font-size: 0.85rem; color: #7f1d1d;">سرورم، نمره منفی شما به ۷ یا بالاتر رسیده است. جهت فعال‌سازی به مدیریت سامانه مراجعه فرمایید.</p>
+        <p style="font-size: 0.85rem; color: #7f1d1d;">سرورم، حساب شما به دلیل رسیدن به نصاب غیبت‌ها (۲ غیبت ناهار یا ۴ غیبت صبحانه) مسدود شده است. جهت فعال‌سازی به مدیریت سامانه مراجعه فرمایید.</p>
       </div>
 
       <div id="user-active-content">
@@ -614,12 +710,16 @@
         <!-- کاربران مسدود -->
         <div class="card-sub" style="border-color: #fca5a5; background: #fffaf0;">
           <h3 style="color: #c2410c;">🚫 کاربران مسدود شده</h3>
-          <div class="table-container" style="max-height: 180px;">
+          <p style="font-size: 0.75rem; color: #92400e; margin-bottom: 8px;">
+            📌 ملاک مسدودی: ۲ غیبت در وعده‌های ناهار یا ۴ غیبت در وعده‌های صبحانه (وعده شام معاف است).
+          </p>
+          <div class="table-container" style="max-height: 220px;">
             <table class="mobile-table">
               <thead>
                 <tr>
                   <th>کاربر</th>
                   <th>نمره منفی</th>
+                  <th>غیبت (ن/ص)</th>
                   <th>عملیات</th>
                 </tr>
               </thead>
@@ -703,6 +803,10 @@
 
   const TOTAL_MONTH_DAYS = 30;
   const ALL_MEALS = ["صبحانه", "ناهار", "شام"];
+
+  // 📌 نصاب‌های مسدودی جدید
+  const BAN_THRESHOLD_LUNCH = 2;      // ۲ غیبت ناهار
+  const BAN_THRESHOLD_BREAKFAST = 4;  // ۴ غیبت صبحانه (شام معاف)
 
   let currentUser = null;
   let currentConfig = null;
@@ -845,6 +949,47 @@
     }
   });
 
+  // 🔔 اعلان درون‌صفحه‌ای هنگام ورود: نمره منفی جدید، غیبت جدید و مسدود شدن
+  function notifyUserOnLogin() {
+    if (!currentUser || currentUser.role === "admin") return;
+
+    const abs = currentUser.absences || { breakfast: 0, lunch: 0, dinner: 0 };
+    const penalty = Number(currentUser.penalty) || 0;
+    const isBanned = currentUser.banned === true;
+
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('food_last_seen') || "null"); } catch (e) {}
+
+    if (saved && saved.license === currentUser.license) {
+      const sAbs = saved.absences || { breakfast: 0, lunch: 0, dinner: 0 };
+      const msgs = [];
+
+      if (penalty > (Number(saved.penalty) || 0)) {
+        msgs.push(`⛔ سرورم، ${penalty - Number(saved.penalty)} نمره منفی جدید برای شما ثبت شد.\nمجموع نمره منفی فعلی: ${penalty}`);
+      }
+      if (abs.lunch > (Number(sAbs.lunch) || 0)) {
+        msgs.push(`🍽️ یک غیبت ناهار جدید برای شما ثبت شد.\nتعداد غیبت ناهار فعلی: ${abs.lunch} (نصاب مسدودی: ${BAN_THRESHOLD_LUNCH})`);
+      }
+      if (abs.breakfast > (Number(sAbs.breakfast) || 0)) {
+        msgs.push(`🌅 یک غیبت صبحانه جدید برای شما ثبت شد.\nتعداد غیبت صبحانه فعلی: ${abs.breakfast} (نصاب مسدودی: ${BAN_THRESHOLD_BREAKFAST})`);
+      }
+      if (isBanned && !saved.banned) {
+        msgs.push("🚫 سرورم، حساب شما به دلیل رسیدن به نصاب غیبت‌ها مسدود شده است. جهت فعال‌سازی به مدیریت سامانه مراجعه فرمایید.");
+      }
+
+      if (msgs.length > 0) {
+        setTimeout(() => alert("🔔 اعلان سامانه:\n\n" + msgs.join("\n\n—————————\n\n")), 400);
+      }
+    }
+
+    localStorage.setItem('food_last_seen', JSON.stringify({
+      license: currentUser.license,
+      penalty: penalty,
+      absences: abs,
+      banned: isBanned
+    }));
+  }
+
   async function login() {
     const license = document.getElementById('license-input').value.trim();
     if (!license) return alert("سرورم، لطفاً شماره پرونده را وارد نمایید!");
@@ -876,6 +1021,9 @@
     try {
       await loadConfig();
       document.getElementById('login-section').classList.add('hidden');
+
+      // 🔔 نمایش اعلان‌های جدید (نمره منفی / غیبت / مسدودی) به کاربر عادی
+      notifyUserOnLogin();
 
       if (currentUser.role === "admin") {
         initAdminPanel();
@@ -916,10 +1064,17 @@
     document.getElementById('user-name-display').innerText = currentUser.name;
     
     const penalty = Number(currentUser.penalty) || 0;
+    const abs = currentUser.absences || { breakfast: 0, lunch: 0, dinner: 0 };
     const penaltyDisplay = document.getElementById('user-penalty-display');
     penaltyDisplay.innerText = penalty;
 
-    if (penalty >= 7) {
+    document.getElementById('user-abs-lunch').innerText = abs.lunch || 0;
+    document.getElementById('user-abs-breakfast').innerText = abs.breakfast || 0;
+
+    // 📌 ملاک جدید مسدودی: ۲ غیبت ناهار یا ۴ غیبت صبحانه (به‌علاوه قانون قبلی نمره منفی ۷)
+    const isBanned = currentUser.banned === true || penalty >= 7;
+
+    if (isBanned) {
       penaltyDisplay.classList.add('penalty-danger');
       document.getElementById('banned-msg').style.display = 'block';
       document.getElementById('user-active-content').classList.add('hidden');
@@ -1211,8 +1366,9 @@
 
   // عملیات ثبت مجدد یا ثبت‌نام وعده جدید
   async function bookSingleMeal(day, meal, price) {
-    if (Number(currentUser.penalty) >= 7) {
-      return alert("سرورم، به دلیل داشتن نمره منفی ۷ یا بالاتر امکان رزرو ندارید.");
+    // 📌 ملاک جدید مسدودی
+    if (currentUser.banned === true || Number(currentUser.penalty) >= 7) {
+      return alert("سرورم، به دلیل رسیدن به نصاب غیبت‌ها (۲ غیبت ناهار یا ۴ غیبت صبحانه) یا نمره منفی ۷، امکان رزرو ندارید.");
     }
 
     if (!confirm(`آیا مایلید وعده «${meal} - ${day}» به مبلغ ${formatMoney(price)} تومان برای شما ثبت گردد؟`)) return;
@@ -1329,8 +1485,9 @@
       return alert("سرورم، مهلت ثبت‌نام برای این دوره به اتمام رسیده و فرم بسته شده است.");
     }
 
-    if (Number(currentUser.penalty) >= 7) {
-      return alert("سرورم، به علت داشتن نمره منفی ۷ یا بالاتر امکان رزرو ندارید.");
+    // 📌 ملاک جدید مسدودی
+    if (currentUser.banned === true || Number(currentUser.penalty) >= 7) {
+      return alert("سرورم، به دلیل رسیدن به نصاب غیبت‌ها (۲ غیبت ناهار یا ۴ غیبت صبحانه) یا نمره منفی ۷، امکان رزرو ندارید.");
     }
 
     const checkboxes = document.querySelectorAll('#meals-grid input[type="checkbox"]:checked');
@@ -1366,7 +1523,8 @@
       } else {
         alert(data.message);
         if (data.message && (data.message.includes("مسدود") || data.message.includes("نمره منفی"))) {
-          currentUser.penalty = 7;
+          currentUser.banned = true;
+          currentUser.penalty = Math.max(Number(currentUser.penalty) || 0, 7);
           localStorage.setItem('food_system_user', JSON.stringify(currentUser));
           await initUserPanel();
         }
@@ -1555,7 +1713,7 @@
 
   async function loadBannedUsers() {
     const tbody = document.getElementById('banned-users-list');
-    tbody.innerHTML = '<tr><td colspan="3">در حال بارگذاری...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4">در حال بارگذاری...</td></tr>';
     
     try {
       const res = await fetch(SCRIPT_URL, {
@@ -1571,24 +1729,110 @@
             <tr>
               <td><strong>${u.name}</strong><br><small style="color:#64748b;">${u.license}</small></td>
               <td><span class="penalty-pill penalty-danger">${u.penalty}</span></td>
+              <td style="font-size:0.78rem;">
+                🍽️ ${u.lunchAbsences}<br>🌅 ${u.breakfastAbsences}
+              </td>
               <td>
-                <button onclick="unbanUser('${u.license}', '${u.name}')" class="btn-unban">
-                  🔄 صفر کردن نمره منفی
+                <button onclick="showUserReport('${u.license}', '${u.name}')" class="btn-report">
+                  📊 گزارش کامل
+                </button>
+                <button onclick="unbanUser('${u.license}', '${u.name}')" class="btn-unban" style="margin-top:4px;">
+                  🔄 رفع مسدودی
                 </button>
               </td>
             </tr>
           `;
         });
       } else {
-        tbody.innerHTML = '<tr><td colspan="3" style="color:#059669; font-weight:bold;">✨ هیچ کاربر مسدودی یافت نشد.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#059669; font-weight:bold;">✨ هیچ کاربر مسدودی یافت نشد.</td></tr>';
       }
     } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="3" style="color:red;">خطا در دریافت لیست!</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="color:red;">خطا در دریافت لیست!</td></tr>';
+    }
+  }
+
+  // 📊 مودال گزارش کامل غیبت‌های یک کاربر
+  function closeReportModal() {
+    document.getElementById('report-modal').classList.add('hidden');
+  }
+
+  async function showUserReport(license, name) {
+    const modal = document.getElementById('report-modal');
+    const body = document.getElementById('report-modal-body');
+    const title = document.getElementById('report-modal-title');
+
+    title.innerText = `گزارش غیبت‌های ${name}`;
+    body.innerHTML = '<p style="text-align:center; font-weight:700; color:#64748b;">در حال دریافت گزارش...</p>';
+    modal.classList.remove('hidden');
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "getUserAbsenceReport", license: license })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        body.innerHTML = '<p style="color:red; text-align:center; font-weight:700;">خطا در دریافت گزارش!</p>';
+        return;
+      }
+
+      const records = data.records || [];
+      const stats = data.stats || { breakfast: 0, lunch: 0, dinner: 0, total: 0 };
+
+      if (records.length === 0) {
+        body.innerHTML = '<p style="text-align:center; color:#059669; font-weight:800;">✨ هیچ غیبتی برای این کاربر ثبت نشده است.</p>';
+        return;
+      }
+
+      let html = `
+        <div class="absence-summary">
+          <span>🍽️ ناهار: <strong>${stats.lunch}</strong> (نصاب ۲)</span>
+          <span>🌅 صبحانه: <strong>${stats.breakfast}</strong> (نصاب ۴)</span>
+          <span>🌙 شام: <strong>${stats.dinner}</strong> (معاف)</span>
+          <span>⛔ مجموع: <strong>${stats.total}</strong></span>
+        </div>
+        <div class="table-container" style="max-height: 320px;">
+          <table class="mobile-table">
+            <thead>
+              <tr>
+                <th>ردیف</th>
+                <th>روز</th>
+                <th>تاریخ شمسی</th>
+                <th>وعده</th>
+                <th>دوره</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      records.forEach((r, idx) => {
+        // تاریخ شمسی فقط برای دوره فعلی قابل محاسبه است
+        let shamsi = "—";
+        const dayMatch = String(r.day).match(/\d+/);
+        if (dayMatch && currentConfig && String(r.formTitle) === String(currentConfig.FormTitle)) {
+          shamsi = getDayShamsiInfo(Number(dayMatch[0]));
+        }
+        html += `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${r.day}</strong></td>
+            <td><small>${shamsi}</small></td>
+            <td><strong>${r.meal}</strong></td>
+            <td><small style="color:#64748b;">${r.formTitle || "—"}</small></td>
+          </tr>
+        `;
+      });
+
+      html += "</tbody></table></div>";
+      body.innerHTML = html;
+    } catch (e) {
+      body.innerHTML = '<p style="color:red; text-align:center; font-weight:700;">خطا در دریافت گزارش!</p>';
     }
   }
 
   async function unbanUser(license, name) {
-    if (!confirm(`سرورم، آیا از رفع مسدودی «${name}» اطمینان دارید؟`)) return;
+    if (!confirm(`سرورم، آیا از رفع مسدودی «${name}» اطمینان دارید؟\n(نمره منفی صفر می‌شود و غیبت‌های ثبت‌شده او عفو داده می‌شوند؛ هیچ سابقه‌ای حذف نمی‌شود.)`)) return;
 
     showLoading(true);
     try {
@@ -1737,6 +1981,14 @@
           });
           const data = await res.json();
           alert(data.message);
+
+          // 🔔 اعلان مسدودی‌های جدید این بار حضور و غیاب
+          if (data.newlyBanned && data.newlyBanned.length > 0) {
+            setTimeout(() => {
+              alert("🚫 کاربران زیر در این بررسی به نصاب مسدودی رسیدند:\n\n" + data.newlyBanned.map(n => "• " + n).join("\n"));
+            }, 500);
+          }
+
           fileInput.value = "";
           await loadBannedUsers();
         } catch (err) {
@@ -1775,6 +2027,7 @@
         let st = "در انتظار";
         if (r.status === "present") st = "حاضر";
         if (r.status === "absent") st = "غایب";
+        if (r.status === "pardoned") st = "غیبت عفو شده";
         csvContent += `${idx + 1},"${r.id}","${r.date}","${r.license}","${r.name}","${r.day}","${r.meal}",${r.price || 0},"${st}","${r.formTitle}"\n`;
       });
 
