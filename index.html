@@ -833,6 +833,15 @@
       .replace(/[٠-٩]/g, d => arabicDigits.indexOf(d));
   }
 
+  // 📌 نرمال‌سازی شماره پرونده (هماهنگ با سرور):
+  // ارقام فارسی/عربی به انگلیسی تبدیل و صفرهای ابتدایی حذف می‌شوند
+  // تا شماره پرونده‌ای که در شیت به‌صورت عدد یا متن ذخیره شده، همیشه یکسان مقایسه شود.
+  function normalizeLicense(value) {
+    let s = toEnglishDigits(value).replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+    if (/^\d+$/.test(s)) s = s.replace(/^0+(?=\d)/, "");
+    return s;
+  }
+
   function formatMoney(num) {
     return Number(num || 0).toLocaleString('fa-IR');
   }
@@ -928,17 +937,22 @@
     if (savedUser) {
       try {
         currentUser = JSON.parse(savedUser);
+        // 📌 لایسنس ذخیره‌شده نرمال می‌شود تا با شماره پرونده تغییر‌یافته هماهنگ باشد
         fetch(SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'login', license: currentUser.license })
+          body: JSON.stringify({ action: 'login', license: normalizeLicense(currentUser.license) })
         })
         .then(res => res.json())
         .then(data => {
           if (data.success && data.user) {
             currentUser = data.user;
             localStorage.setItem('food_system_user', JSON.stringify(currentUser));
+            proceedAfterLogin();
+          } else {
+            // شماره پرونده دیگر معتبر نیست (تغییر کرده)؛ کاربر باید مجدد وارد شود
+            localStorage.removeItem('food_system_user');
+            currentUser = null;
           }
-          proceedAfterLogin();
         })
         .catch(() => {
           proceedAfterLogin();
@@ -960,7 +974,7 @@
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem('food_last_seen') || "null"); } catch (e) {}
 
-    if (saved && saved.license === currentUser.license) {
+    if (saved && normalizeLicense(saved.license) === normalizeLicense(currentUser.license)) {
       const sAbs = saved.absences || { breakfast: 0, lunch: 0, dinner: 0 };
       const msgs = [];
 
@@ -983,7 +997,7 @@
     }
 
     localStorage.setItem('food_last_seen', JSON.stringify({
-      license: currentUser.license,
+      license: normalizeLicense(currentUser.license),
       penalty: penalty,
       absences: abs,
       banned: isBanned
@@ -991,7 +1005,8 @@
   }
 
   async function login() {
-    const license = document.getElementById('license-input').value.trim();
+    // 📌 نرمال‌سازی ورودی: ارقام فارسی/عربی به انگلیسی و حذف صفرهای ابتدایی
+    const license = normalizeLicense(document.getElementById('license-input').value);
     if (!license) return alert("سرورم، لطفاً شماره پرونده را وارد نمایید!");
 
     showLoading(true);
@@ -1004,6 +1019,7 @@
 
       if (data.success) {
         currentUser = data.user;
+        // 📌 لایسنس نرمال‌شده سرور ذخیره می‌شود تا در همه‌ی درخواست‌ها یکسان باشد
         localStorage.setItem('food_system_user', JSON.stringify(currentUser));
         await proceedAfterLogin();
       } else {
@@ -1103,7 +1119,7 @@
         method: 'POST',
         body: JSON.stringify({
           action: "getUserReservations",
-          license: currentUser.license,
+          license: normalizeLicense(currentUser.license),
           formTitle: currentConfig.FormTitle
         })
       });
@@ -1348,7 +1364,7 @@
         body: JSON.stringify({
           action: "cancelMeal",
           reservationId: resId,
-          license: currentUser.license
+          license: normalizeLicense(currentUser.license)
         })
       });
       const data = await res.json();
@@ -1379,7 +1395,7 @@
         method: 'POST',
         body: JSON.stringify({
           action: "reserveSingleMeal",
-          license: currentUser.license,
+          license: normalizeLicense(currentUser.license),
           name: currentUser.name,
           formTitle: currentConfig.FormTitle,
           day: day,
@@ -1510,7 +1526,7 @@
         method: 'POST',
         body: JSON.stringify({
           action: "submitReservation",
-          license: currentUser.license,
+          license: normalizeLicense(currentUser.license),
           name: currentUser.name,
           formTitle: currentConfig.FormTitle,
           selections: selections
